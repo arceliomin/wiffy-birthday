@@ -14,6 +14,26 @@
 
 <div class="petals" id="petals" aria-hidden="true"></div>
 
+<svg class="botanical-defs" aria-hidden="true" focusable="false">
+  <symbol id="ill-rose" viewBox="0 0 200 280">
+    <g transform="translate(20,20)" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M100,255 C100,220 96,180 100,150"/>
+      <path d="M100,190 C 80,185 65,195 55,215 C 70,215 88,208 100,196 Z"/>
+      <path d="M100,160 C 120,152 138,158 150,175 C 135,178 115,175 100,166 Z"/>
+      <path d="M100,140 C 60,135 45,110 55,85 C 60,65 80,50 100,52 C 120,50 140,65 145,85 C 155,110 140,135 100,140 Z"/>
+      <path d="M100,125 C 78,122 68,105 75,88 C 80,75 90,68 100,69 C 110,68 120,75 125,88 C 132,105 122,122 100,125 Z"/>
+      <path d="M100,110 C 92,108 88,100 92,93 C 95,88 102,88 104,93 C 106,97 103,101 98,100"/>
+    </g>
+  </symbol>
+  <symbol id="ill-tulip" viewBox="0 0 140 250">
+    <g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M80,235 C80,190 78,150 80,120"/>
+      <path d="M80,185 C 55,182 32,168 20,140 C 40,148 62,158 78,172 C 79,176 80,180 80,185 Z"/>
+      <path d="M50,95 C 40,80 42,55 50,35 C 55,20 62,10 68,25 C 72,12 88,12 92,25 C 98,10 105,20 110,35 C 118,55 120,80 110,95 C 100,105 60,105 50,95 Z"/>
+    </g>
+  </symbol>
+</svg>
+
 <!-- ===================== GATE (PASSWORD + COUNTDOWN) ===================== -->
 <div class="gate" id="gate">
   <div class="gate-inner">
@@ -67,26 +87,33 @@
 
   <!-- 1. HERO -->
   <section class="section hero" id="hero">
+    <svg class="botanical botanical-hero" viewBox="0 0 200 280" aria-hidden="true"><use href="#ill-rose"/></svg>
     <p class="eyebrow reveal">30 September 2026</p>
     <h1 class="hero-title reveal">Happy Birthday,<br>wiffy.</h1>
     <p class="hero-text reveal">Untuk perempuan yang paling hubby sayangin satu-satunya dan selama-lamanya di seluruh dunia.</p>
     <button class="btn-primary reveal" id="open-gift">Buka hadiah dari hubby</button>
-    <svg class="hero-rose reveal" viewBox="0 0 100 120" aria-hidden="true">
-      <path d="M50 118 C 50 90, 45 70, 50 50" fill="none" stroke="currentColor" stroke-width="1"/>
-      <path d="M50 50 C 30 45, 25 25, 40 12 C 50 4, 60 4, 68 12 C 78 24, 72 42, 50 50 Z" fill="none" stroke="currentColor" stroke-width="1"/>
-      <path d="M50 50 C 42 42, 42 28, 50 20 C 58 28, 58 42, 50 50 Z" fill="none" stroke="currentColor" stroke-width="0.8"/>
-      <path d="M50 78 C 38 76, 30 82, 26 92" fill="none" stroke="currentColor" stroke-width="1"/>
-      <path d="M50 92 C 62 90, 70 96, 74 106" fill="none" stroke="currentColor" stroke-width="1"/>
-    </svg>
   </section>
+
+  <div class="section-divider reveal" aria-hidden="true">
+    <span class="sd-line"></span>
+    <svg class="sd-icon" viewBox="0 0 140 250"><use href="#ill-tulip"/></svg>
+    <span class="sd-line"></span>
+  </div>
 
   <!-- 2. PEMBUKA -->
   <section class="section opening" id="opening">
     <p class="opening-text reveal">Hari ini bukan cuma tentang bertambahnya umur wiffy, tapi tentang betapa bersyukurnya hubby karena Allah pernah mempertemukan hubby dengan wiffy, dari kecil sampai akhirnya hati hubby balik lagi ke tempat yang paling benar.</p>
   </section>
 
+  <div class="section-divider reveal" aria-hidden="true">
+    <span class="sd-line"></span>
+    <svg class="sd-icon" viewBox="0 0 200 280"><use href="#ill-rose"/></svg>
+    <span class="sd-line"></span>
+  </div>
+
   <!-- 3. LOVE JOURNEY TIMELINE -->
   <section class="section timeline-section" id="journey">
+    <svg class="botanical botanical-journey" viewBox="0 0 140 250" aria-hidden="true"><use href="#ill-tulip"/></svg>
     <p class="eyebrow reveal">love journey</p>
     <h2 class="section-title reveal">Perjalanan kita</h2>
 
@@ -144,8 +171,15 @@
     </div>
   </section>
 
+  <div class="section-divider reveal" aria-hidden="true">
+    <span class="sd-line"></span>
+    <svg class="sd-icon" viewBox="0 0 200 280"><use href="#ill-rose"/></svg>
+    <span class="sd-line"></span>
+  </div>
+
   <!-- 4. SURPRISE UNLOCK -->
   <section class="section surprise-section" id="surprises">
+    <svg class="botanical botanical-surprise" viewBox="0 0 140 250" aria-hidden="true"><use href="#ill-tulip"/></svg>
     <p class="eyebrow reveal">surprise unlock</p>
     <h2 class="section-title reveal">Ketuk pelan-pelan, sayang</h2>
     <p class="section-sub reveal">Setiap kartu nyimpen satu hal kecil dari hati hubby.</p>
@@ -219,8 +253,15 @@
     </div>
   </section>
 
+  <div class="section-divider reveal" aria-hidden="true">
+    <span class="sd-line"></span>
+    <svg class="sd-icon" viewBox="0 0 140 250"><use href="#ill-tulip"/></svg>
+    <span class="sd-line"></span>
+  </div>
+
   <!-- 5. GALERI -->
   <section class="section gallery-section" id="gallery">
+    <svg class="botanical botanical-gallery" viewBox="0 0 200 280" aria-hidden="true"><use href="#ill-rose"/></svg>
     <p class="eyebrow reveal">kenangan kita</p>
     <h2 class="section-title reveal">Album kecil kita</h2>
 
@@ -257,8 +298,15 @@
     </div>
   </section>
 
+  <div class="section-divider reveal" aria-hidden="true">
+    <span class="sd-line"></span>
+    <svg class="sd-icon" viewBox="0 0 200 280"><use href="#ill-rose"/></svg>
+    <span class="sd-line"></span>
+  </div>
+
   <!-- 6. MASA DEPAN -->
   <section class="section future-section" id="future">
+    <svg class="botanical botanical-future" viewBox="0 0 140 250" aria-hidden="true"><use href="#ill-tulip"/></svg>
     <p class="eyebrow reveal">masa depan</p>
     <h2 class="section-title reveal">Yang hubby doakan pelan-pelan</h2>
 
@@ -284,8 +332,15 @@
     </div>
   </section>
 
+  <div class="section-divider reveal" aria-hidden="true">
+    <span class="sd-line"></span>
+    <svg class="sd-icon" viewBox="0 0 140 250"><use href="#ill-tulip"/></svg>
+    <span class="sd-line"></span>
+  </div>
+
   <!-- 7. SURAT TERAKHIR -->
   <section class="section letter-section" id="letter">
+    <svg class="botanical botanical-letter" viewBox="0 0 200 280" aria-hidden="true"><use href="#ill-rose"/></svg>
     <svg class="flourish reveal" viewBox="0 0 120 40" aria-hidden="true">
       <path d="M10 30 C 25 5, 45 5, 60 20 C 75 5, 95 5, 110 30" fill="none" stroke="currentColor" stroke-width="1"/>
       <circle cx="60" cy="14" r="2.4" fill="currentColor"/>
@@ -301,12 +356,31 @@
 
     <h2 class="letter-final reveal">Selamat ulang tahun,<br>calon istriku.</h2>
 
-    <button class="btn-voice reveal" id="voice-toggle" aria-pressed="false">
-      <span class="voice-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
-      </span>
-      <span id="voice-label">Putar suara hubby</span>
-    </button>
+    <div class="voice-player reveal" id="voice-player">
+      <p class="vp-title">Suara hubby untuk wiffy</p>
+
+      <div class="vp-progress">
+        <span class="vp-time" id="vp-current">0:00</span>
+        <input type="range" class="vp-range" id="vp-range" min="0" max="100" value="0" step="0.1" aria-label="Posisi suara hubby">
+        <span class="vp-time" id="vp-duration">0:00</span>
+      </div>
+
+      <div class="vp-controls">
+        <button class="vp-skip" type="button" id="vp-back" aria-label="Mundur 10 detik">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 5V2L6 7l6 5V9a6 6 0 1 1-6 6H4a8 8 0 1 0 8-10z"/></svg>
+          <span class="vp-skip-label">10</span>
+        </button>
+        <button class="vp-play" type="button" id="vp-play" aria-pressed="false" aria-label="Putar suara hubby">
+          <svg class="vp-icon-play" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+          <svg class="vp-icon-pause" viewBox="0 0 24 24" aria-hidden="true" hidden><path fill="currentColor" d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+        </button>
+        <button class="vp-skip" type="button" id="vp-forward" aria-label="Maju 10 detik">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 5V2l6 5-6 5V9a6 6 0 1 0 6 6h2a8 8 0 1 1-8-10z"/></svg>
+          <span class="vp-skip-label">10</span>
+        </button>
+      </div>
+      <p class="vp-status" id="vp-status" aria-live="polite">&nbsp;</p>
+    </div>
 
     <p class="signature reveal">— hubby, yang akan selalu pulang ke wiffy</p>
   </section>
@@ -323,13 +397,3 @@
 <script src="script.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
