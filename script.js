@@ -214,15 +214,64 @@
   }
 
   /* ---------------------------------------------------------
-     5. VOICE MESSAGE BUTTON (pauses bg music while playing)
+     5. VOICE MESSAGE PLAYER (play/pause, seek, skip, duration)
      --------------------------------------------------------- */
   var voiceAudio = document.getElementById("voice-audio");
-  var voiceToggle = document.getElementById("voice-toggle");
-  var voiceLabel = document.getElementById("voice-label");
+  var vpPlay = document.getElementById("vp-play");
+  var vpIconPlay = vpPlay ? vpPlay.querySelector(".vp-icon-play") : null;
+  var vpIconPause = vpPlay ? vpPlay.querySelector(".vp-icon-pause") : null;
+  var vpRange = document.getElementById("vp-range");
+  var vpCurrent = document.getElementById("vp-current");
+  var vpDuration = document.getElementById("vp-duration");
+  var vpBack = document.getElementById("vp-back");
+  var vpForward = document.getElementById("vp-forward");
+  var vpStatus = document.getElementById("vp-status");
   var wasBgPlayingBeforeVoice = false;
+  var isScrubbing = false;
 
-  if (voiceToggle) {
-    voiceToggle.addEventListener("click", function () {
+  function formatTime(seconds) {
+    if (!isFinite(seconds) || isNaN(seconds) || seconds < 0) return "0:00";
+    var m = Math.floor(seconds / 60);
+    var s = Math.floor(seconds % 60);
+    return m + ":" + pad(s);
+  }
+
+  function setPlayIcon(isPlaying) {
+    if (!vpPlay) return;
+    vpPlay.setAttribute("aria-pressed", isPlaying ? "true" : "false");
+    vpIconPlay.hidden = isPlaying;
+    vpIconPause.hidden = !isPlaying;
+  }
+
+  if (voiceAudio && vpPlay && vpRange) {
+    voiceAudio.addEventListener("loadedmetadata", function () {
+      if (isFinite(voiceAudio.duration)) {
+        vpRange.max = voiceAudio.duration;
+        vpDuration.textContent = formatTime(voiceAudio.duration);
+      }
+    });
+
+    voiceAudio.addEventListener("timeupdate", function () {
+      if (!isScrubbing) {
+        vpRange.value = voiceAudio.currentTime;
+      }
+      vpCurrent.textContent = formatTime(voiceAudio.currentTime);
+    });
+
+    voiceAudio.addEventListener("ended", function () {
+      setPlayIcon(false);
+      vpRange.value = 0;
+      vpCurrent.textContent = "0:00";
+      if (wasBgPlayingBeforeVoice) {
+        playBgAudio();
+      }
+    });
+
+    voiceAudio.addEventListener("error", function () {
+      vpStatus.textContent = "Suara belum tersedia di sini.";
+    });
+
+    vpPlay.addEventListener("click", function () {
       if (voiceAudio.paused) {
         wasBgPlayingBeforeVoice = !bgAudio.paused;
         if (wasBgPlayingBeforeVoice) {
@@ -232,29 +281,41 @@
         var p = voiceAudio.play();
         if (p && p.then) {
           p.then(function () {
-            voiceToggle.setAttribute("aria-pressed", "true");
-            voiceLabel.textContent = "Jeda suara hubby";
+            setPlayIcon(true);
+            vpStatus.textContent = "";
           }).catch(function () {
-            voiceLabel.textContent = "Suara belum tersedia";
+            vpStatus.textContent = "Suara belum tersedia di sini.";
           });
         } else {
-          voiceToggle.setAttribute("aria-pressed", "true");
-          voiceLabel.textContent = "Jeda suara hubby";
+          setPlayIcon(true);
         }
       } else {
         voiceAudio.pause();
-        voiceToggle.setAttribute("aria-pressed", "false");
-        voiceLabel.textContent = "Putar suara hubby";
+        setPlayIcon(false);
       }
     });
 
-    voiceAudio.addEventListener("ended", function () {
-      voiceToggle.setAttribute("aria-pressed", "false");
-      voiceLabel.textContent = "Putar suara hubby";
-      if (wasBgPlayingBeforeVoice) {
-        playBgAudio();
-      }
+    vpRange.addEventListener("input", function () {
+      isScrubbing = true;
+      vpCurrent.textContent = formatTime(parseFloat(vpRange.value));
     });
+    vpRange.addEventListener("change", function () {
+      voiceAudio.currentTime = parseFloat(vpRange.value);
+      isScrubbing = false;
+    });
+
+    function skip(delta) {
+      var dur = isFinite(voiceAudio.duration) ? voiceAudio.duration : 0;
+      var next = voiceAudio.currentTime + delta;
+      if (next < 0) next = 0;
+      if (dur && next > dur) next = dur;
+      voiceAudio.currentTime = next;
+      vpRange.value = next;
+      vpCurrent.textContent = formatTime(next);
+    }
+
+    if (vpBack) vpBack.addEventListener("click", function () { skip(-10); });
+    if (vpForward) vpForward.addEventListener("click", function () { skip(10); });
   }
 
   /* ---------------------------------------------------------
