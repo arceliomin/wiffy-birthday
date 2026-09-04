@@ -12,6 +12,48 @@
   ).matches;
 
   /* ---------------------------------------------------------
+     0. HERO TITLE — word-by-word cinematic reveal
+     Wraps each word so CSS can animate them in with a stagger.
+     Runs immediately; the animation itself only becomes visible
+     once #main leaves display:none (see gate unlock logic).
+     --------------------------------------------------------- */
+  (function wrapHeroWords() {
+    var heroTitle = document.getElementById("hero-title");
+    if (!heroTitle || prefersReducedMotion) return;
+
+    var nodes = Array.prototype.slice.call(heroTitle.childNodes);
+    heroTitle.innerHTML = "";
+
+    nodes.forEach(function (node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        var parts = node.textContent.split(/(\s+)/);
+        parts.forEach(function (part) {
+          if (part === "") return;
+          if (/^\s+$/.test(part)) {
+            heroTitle.appendChild(document.createTextNode(part));
+            return;
+          }
+          var mask = document.createElement("span");
+          mask.className = "word-mask";
+          var inner = document.createElement("span");
+          inner.className = "word-inner";
+          inner.textContent = part;
+          mask.appendChild(inner);
+          heroTitle.appendChild(mask);
+        });
+      } else {
+        heroTitle.appendChild(node.cloneNode(true));
+      }
+    });
+
+    var i = 0;
+    heroTitle.querySelectorAll(".word-inner").forEach(function (span) {
+      span.style.animationDelay = i * 90 + "ms";
+      i++;
+    });
+  })();
+
+  /* ---------------------------------------------------------
      1. COUNTDOWN (30 Sept 2026, 00:00 WIB = UTC+7)
      --------------------------------------------------------- */
   var TARGET_DATE = new Date("2026-09-30T00:00:00+07:00").getTime();
@@ -26,15 +68,27 @@
     return String(n).padStart(2, "0");
   }
 
+  function setCdValue(el, value) {
+    if (!el) return;
+    if (el.textContent === value) return;
+    el.textContent = value;
+    if (!prefersReducedMotion) {
+      el.classList.remove("tick");
+      // force reflow so the animation can restart on rapid updates
+      void el.offsetWidth;
+      el.classList.add("tick");
+    }
+  }
+
   function updateCountdown() {
     var now = Date.now();
     var diff = TARGET_DATE - now;
 
     if (diff <= 0) {
-      cdDays.textContent = "00";
-      cdHours.textContent = "00";
-      cdMins.textContent = "00";
-      cdSecs.textContent = "00";
+      setCdValue(cdDays, "00");
+      setCdValue(cdHours, "00");
+      setCdValue(cdMins, "00");
+      setCdValue(cdSecs, "00");
       return;
     }
 
@@ -44,10 +98,10 @@
     var mins = Math.floor((totalSeconds % 3600) / 60);
     var secs = totalSeconds % 60;
 
-    cdDays.textContent = pad(days);
-    cdHours.textContent = pad(hours);
-    cdMins.textContent = pad(mins);
-    cdSecs.textContent = pad(secs);
+    setCdValue(cdDays, pad(days));
+    setCdValue(cdHours, pad(hours));
+    setCdValue(cdMins, pad(mins));
+    setCdValue(cdSecs, pad(secs));
   }
 
   function startCountdown() {
@@ -395,5 +449,34 @@
   if (!prefersReducedMotion) {
     window.setInterval(spawnPetal, 1400);
     spawnPetal();
+  }
+
+  /* ---------------------------------------------------------
+     9. PARALLAX — botanical watermarks drift softly on scroll
+     --------------------------------------------------------- */
+  var parallaxEls = document.querySelectorAll(".botanical[data-parallax]");
+
+  if (parallaxEls.length && !prefersReducedMotion) {
+    var parallaxTicking = false;
+
+    function updateParallax() {
+      parallaxEls.forEach(function (el) {
+        var factor = parseFloat(el.getAttribute("data-parallax")) || 0.04;
+        var rect = el.getBoundingClientRect();
+        var offset = rect.top * factor;
+        el.style.setProperty("--parallax-y", offset + "px");
+      });
+      parallaxTicking = false;
+    }
+
+    function onScrollParallax() {
+      if (!parallaxTicking) {
+        window.requestAnimationFrame(updateParallax);
+        parallaxTicking = true;
+      }
+    }
+
+    window.addEventListener("scroll", onScrollParallax, { passive: true });
+    updateParallax();
   }
 })();
