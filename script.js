@@ -12,6 +12,35 @@
   ).matches;
 
   /* ---------------------------------------------------------
+     PRELOADER — brief branded loading screen before the gate
+     --------------------------------------------------------- */
+  (function preloader() {
+    var el = document.getElementById("preloader");
+    if (!el) return;
+    var minDelay = prefersReducedMotion ? 0 : 500;
+    var start = Date.now();
+
+    function hide() {
+      var elapsed = Date.now() - start;
+      var wait = Math.max(0, minDelay - elapsed);
+      window.setTimeout(function () {
+        el.classList.add("is-hidden");
+        window.setTimeout(function () {
+          el.remove();
+        }, prefersReducedMotion ? 0 : 650);
+      }, wait);
+    }
+
+    if (document.readyState === "complete") {
+      hide();
+    } else {
+      window.addEventListener("load", hide);
+      // safety net in case "load" is delayed by slow external fonts
+      window.setTimeout(hide, 2500);
+    }
+  })();
+
+  /* ---------------------------------------------------------
      0. HERO TITLE — word-by-word cinematic reveal
      Wraps each word so CSS can animate them in with a stagger.
      Runs immediately; the animation itself only becomes visible
@@ -50,6 +79,59 @@
     heroTitle.querySelectorAll(".word-inner").forEach(function (span) {
       span.style.animationDelay = i * 90 + "ms";
       i++;
+    });
+  })();
+
+  /* ---------------------------------------------------------
+     0b. SCROLL-LIT SENTENCES — cinematic "spotlight" reveal
+     Splits text into sentence spans that light up as they pass
+     the vertical center of the viewport, dim again once past.
+     --------------------------------------------------------- */
+  (function scrollLitText() {
+    if (prefersReducedMotion) return;
+
+    function wrapSentences(el) {
+      var text = el.textContent;
+      var parts = text.match(/[^.!?]+[.!?]*\s*/g) || [text];
+      el.innerHTML = "";
+      parts.forEach(function (part) {
+        if (!part.trim()) return;
+        var span = document.createElement("span");
+        span.className = "scroll-lit";
+        span.textContent = part;
+        el.appendChild(span);
+      });
+    }
+
+    var targets = document.querySelectorAll(
+      ".opening-text, .letter-body p:not(.letter-answer)"
+    );
+    if (!targets.length) return;
+    targets.forEach(wrapSentences);
+
+    if (!("IntersectionObserver" in window)) {
+      document.querySelectorAll(".scroll-lit").forEach(function (el) {
+        el.classList.add("is-lit");
+      });
+      return;
+    }
+
+    var litObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          entry.target.classList.toggle("is-lit", entry.isIntersecting);
+        });
+      },
+      { rootMargin: "-42% 0px -42% 0px", threshold: 0 }
+    );
+
+    // Observe lazily: letter-body sentences are inside a hidden
+    // (display:none) container until the envelope opens, so wait
+    // a tick to ensure layout exists before observing them too.
+    window.requestAnimationFrame(function () {
+      document.querySelectorAll(".scroll-lit").forEach(function (el) {
+        litObserver.observe(el);
+      });
     });
   })();
 
@@ -119,6 +201,66 @@
   startCountdown();
 
   /* ---------------------------------------------------------
+     SOUND CHIMES — tiny synthesized tones (no audio files)
+     Used for: password success, envelope open, surprise cards.
+     --------------------------------------------------------- */
+  var audioCtx = null;
+
+  function getAudioCtx() {
+    if (audioCtx) return audioCtx;
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    audioCtx = new Ctx();
+    return audioCtx;
+  }
+
+  function playChime(notes) {
+    var ctx = getAudioCtx();
+    if (!ctx) return;
+    if (ctx.state === "suspended") {
+      ctx.resume();
+    }
+    var t0 = ctx.currentTime;
+
+    notes.forEach(function (note) {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = note.freq;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      var start = t0 + note.delay;
+      var peak = note.gain || 0.06;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(peak, start + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + note.duration);
+
+      osc.start(start);
+      osc.stop(start + note.duration + 0.05);
+    });
+  }
+
+  function chimeSuccess() {
+    playChime([
+      { freq: 587.33, delay: 0, duration: 0.35 },
+      { freq: 739.99, delay: 0.09, duration: 0.35 },
+      { freq: 987.77, delay: 0.18, duration: 0.5, gain: 0.05 },
+    ]);
+  }
+
+  function chimeOpen() {
+    playChime([
+      { freq: 523.25, delay: 0, duration: 0.3 },
+      { freq: 659.25, delay: 0.12, duration: 0.45, gain: 0.05 },
+    ]);
+  }
+
+  function chimeTap() {
+    playChime([{ freq: 880, delay: 0, duration: 0.12, gain: 0.045 }]);
+  }
+
+  /* ---------------------------------------------------------
      2. PASSWORD GATE
      --------------------------------------------------------- */
   var CORRECT_PASSWORD = "hubbysayangwiffyforever";
@@ -163,6 +305,7 @@
     gateMessage.textContent = "Yeay, wiffy berhasil masuk. Sekarang buka pelan-pelan ya.";
     gateMessage.className = "gate-message is-success";
     spawnConfettiBurst(gateForm.querySelector(".gate-button"));
+    chimeSuccess();
 
     try {
       window.sessionStorage.setItem("wiffy-unlocked", "1");
@@ -412,6 +555,7 @@
     card.addEventListener("click", function () {
       var isOpen = card.classList.toggle("is-open");
       card.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      if (isOpen) chimeTap();
     });
   });
 
@@ -442,6 +586,50 @@
         var vf = momentVideo.closest(".video-frame");
         if (vf) vf.classList.add("no-video");
       });
+    });
+
+    // Auto-thumbnail: grab a frame partway through the clip and use
+    // it as the poster, so the video doesn't start on a black frame.
+    // Wrapped in try/catch — some browsers block canvas capture on
+    // local file:// videos for security reasons, which is fine, the
+    // video just falls back to its default first-frame preview.
+    momentVideo.addEventListener("loadedmetadata", function () {
+      try {
+        momentVideo.currentTime = Math.min(0.5, (momentVideo.duration || 1) / 2);
+      } catch (e) {}
+    });
+    momentVideo.addEventListener(
+      "seeked",
+      function grabThumb() {
+        try {
+          var canvas = document.createElement("canvas");
+          canvas.width = momentVideo.videoWidth || 320;
+          canvas.height = momentVideo.videoHeight || 180;
+          canvas.getContext("2d").drawImage(momentVideo, 0, 0, canvas.width, canvas.height);
+          momentVideo.poster = canvas.toDataURL("image/jpeg", 0.82);
+        } catch (e) {
+          /* canvas tainted or unsupported — keep default preview */
+        }
+        momentVideo.removeEventListener("seeked", grabThumb);
+      },
+      { once: true }
+    );
+
+    // Duck the background music while the video plays, and bring
+    // it back once the video finishes.
+    var wasBgPlayingBeforeVideo = false;
+    momentVideo.addEventListener("play", function () {
+      wasBgPlayingBeforeVideo = !bgAudio.paused;
+      if (wasBgPlayingBeforeVideo) {
+        bgAudio.pause();
+        setMusicState(false);
+      }
+    });
+    momentVideo.addEventListener("ended", function () {
+      if (wasBgPlayingBeforeVideo) {
+        playBgAudio();
+        wasBgPlayingBeforeVideo = false;
+      }
     });
   }
 
@@ -516,17 +704,63 @@
      10. "HARI BERSAMA" — live counter since 17 March 2026
      --------------------------------------------------------- */
   var daysBadgeNum = document.getElementById("days-badge-num");
+  var daysBadge = document.getElementById("days-badge");
   if (daysBadgeNum) {
     var REUNITED_DATE = new Date("2026-03-17T00:00:00+07:00").getTime();
 
-    function updateDaysBadge() {
+    function getDaysCount() {
       var diff = Date.now() - REUNITED_DATE;
-      var days = Math.max(0, Math.floor(diff / 86400000));
-      daysBadgeNum.textContent = days.toLocaleString("id-ID");
+      return Math.max(0, Math.floor(diff / 86400000));
     }
 
-    updateDaysBadge();
-    window.setInterval(updateDaysBadge, 60 * 60 * 1000);
+    function setDaysText(n) {
+      daysBadgeNum.textContent = n.toLocaleString("id-ID");
+    }
+
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function animateDaysCount() {
+      var target = getDaysCount();
+      if (prefersReducedMotion) {
+        setDaysText(target);
+        return;
+      }
+      var duration = 1200;
+      var start = null;
+      function step(ts) {
+        if (start === null) start = ts;
+        var progress = Math.min(1, (ts - start) / duration);
+        setDaysText(Math.floor(easeOutCubic(progress) * target));
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        }
+      }
+      window.requestAnimationFrame(step);
+    }
+
+    setDaysText(0);
+    window.setInterval(function () {
+      setDaysText(getDaysCount());
+    }, 60 * 60 * 1000);
+
+    if (daysBadge && "IntersectionObserver" in window && !prefersReducedMotion) {
+      var daysObserver = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              animateDaysCount();
+              daysObserver.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.4 }
+      );
+      daysObserver.observe(daysBadge);
+    } else {
+      setDaysText(getDaysCount());
+    }
   }
 
   /* ---------------------------------------------------------
@@ -541,6 +775,7 @@
       if (envelopeOpen.getAttribute("aria-expanded") === "true") return;
       envelopeOpen.setAttribute("aria-expanded", "true");
       envelopeOpen.classList.add("is-open");
+      chimeOpen();
 
       var revealLetter = function () {
         envelopeScene.classList.add("is-gone");
@@ -562,4 +797,195 @@
       }
     });
   }
+
+  /* ---------------------------------------------------------
+     12. THEME DEMO SWITCHER (sales/preview tool only)
+     Add "?theme-demo" to the URL to reveal the swatch picker.
+     A normal visitor never sees this.
+     --------------------------------------------------------- */
+  (function themeDemo() {
+    if (window.location.search.indexOf("theme-demo") === -1) return;
+
+    var panel = document.getElementById("theme-demo");
+    if (!panel) return;
+    panel.classList.remove("hidden");
+    panel.setAttribute("aria-hidden", "false");
+
+    var swatches = panel.querySelectorAll(".theme-swatch");
+
+    function setActiveSwatch(theme) {
+      swatches.forEach(function (btn) {
+        btn.classList.toggle("is-active", btn.getAttribute("data-theme") === theme);
+      });
+    }
+
+    var saved = "";
+    try {
+      saved = window.sessionStorage.getItem("wiffy-theme-demo") || "";
+    } catch (e) {}
+    if (saved) document.documentElement.setAttribute("data-theme", saved);
+    setActiveSwatch(saved);
+
+    swatches.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var theme = btn.getAttribute("data-theme");
+        if (theme) {
+          document.documentElement.setAttribute("data-theme", theme);
+        } else {
+          document.documentElement.removeAttribute("data-theme");
+        }
+        setActiveSwatch(theme);
+        try {
+          window.sessionStorage.setItem("wiffy-theme-demo", theme);
+        } catch (e) {}
+      });
+    });
+  })();
+
+  /* ---------------------------------------------------------
+     13. PHOTO LIGHTBOX — tap a photo to view it full-screen
+     --------------------------------------------------------- */
+  (function photoLightbox() {
+    var lightbox = document.getElementById("lightbox");
+    var lightboxImg = document.getElementById("lightbox-img");
+    var closeBtn = document.getElementById("lightbox-close");
+    var prevBtn = document.getElementById("lightbox-prev");
+    var nextBtn = document.getElementById("lightbox-next");
+    if (!lightbox || !lightboxImg) return;
+
+    var frames = Array.prototype.slice.call(
+      document.querySelectorAll(".photo-frame")
+    );
+    var currentIndex = -1;
+
+    function availableFrames() {
+      return frames.filter(function (f) {
+        return !f.classList.contains("no-image");
+      });
+    }
+
+    function openAt(frame) {
+      var list = availableFrames();
+      currentIndex = list.indexOf(frame);
+      if (currentIndex === -1) return;
+      showCurrent(list);
+      lightbox.classList.add("is-open");
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      window.requestAnimationFrame(function () {
+        lightbox.classList.add("is-visible");
+      });
+    }
+
+    function showCurrent(list) {
+      list = list || availableFrames();
+      if (!list.length) return;
+      currentIndex = (currentIndex + list.length) % list.length;
+      var img = list[currentIndex].querySelector("img");
+      if (img) {
+        lightboxImg.src = img.src;
+        lightboxImg.alt = img.alt || "";
+      }
+    }
+
+    function close() {
+      lightbox.classList.remove("is-visible");
+      lightbox.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      window.setTimeout(function () {
+        lightbox.classList.remove("is-open");
+        lightboxImg.src = "";
+      }, prefersReducedMotion ? 0 : 300);
+    }
+
+    frames.forEach(function (frame) {
+      frame.style.cursor = "zoom-in";
+      frame.addEventListener("click", function () {
+        if (frame.classList.contains("no-image")) return;
+        openAt(frame);
+      });
+    });
+
+    if (closeBtn) closeBtn.addEventListener("click", close);
+    if (prevBtn)
+      prevBtn.addEventListener("click", function () {
+        currentIndex--;
+        showCurrent();
+      });
+    if (nextBtn)
+      nextBtn.addEventListener("click", function () {
+        currentIndex++;
+        showCurrent();
+      });
+
+    lightbox.addEventListener("click", function (e) {
+      if (e.target === lightbox) close();
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (!lightbox.classList.contains("is-open")) return;
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowLeft") {
+        currentIndex--;
+        showCurrent();
+      }
+      if (e.key === "ArrowRight") {
+        currentIndex++;
+        showCurrent();
+      }
+    });
+  })();
+
+  /* ---------------------------------------------------------
+     14. CUSTOM CURSOR (desktop mouse only)
+     --------------------------------------------------------- */
+  (function customCursor() {
+    var dot = document.getElementById("cursor-dot");
+    if (!dot) return;
+    var canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (!canHover || prefersReducedMotion) return;
+
+    var targetX = 0,
+      targetY = 0,
+      curX = 0,
+      curY = 0,
+      started = false;
+
+    document.addEventListener("mousemove", function (e) {
+      targetX = e.clientX;
+      targetY = e.clientY;
+      if (!started) {
+        curX = targetX;
+        curY = targetY;
+        started = true;
+        dot.classList.add("is-active");
+      }
+    });
+
+    document.addEventListener("mouseleave", function () {
+      dot.classList.remove("is-active");
+    });
+
+    var HOVER_SELECTOR =
+      "a, button, .surprise-card, .photo-frame:not(.no-image), .envelope, input, .lightbox";
+
+    document.addEventListener("mouseover", function (e) {
+      if (e.target.closest && e.target.closest(HOVER_SELECTOR)) {
+        dot.classList.add("is-hovering");
+      }
+    });
+    document.addEventListener("mouseout", function (e) {
+      if (e.target.closest && e.target.closest(HOVER_SELECTOR)) {
+        dot.classList.remove("is-hovering");
+      }
+    });
+
+    function render() {
+      curX += (targetX - curX) * 0.2;
+      curY += (targetY - curY) * 0.2;
+      dot.style.transform = "translate(" + curX + "px, " + curY + "px)";
+      window.requestAnimationFrame(render);
+    }
+    window.requestAnimationFrame(render);
+  })();
 })();
