@@ -4,14 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#FBF6F0">
+
+<!-- favicon (a small wax-seal mark, matching the envelope icon on the site) -->
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="icon" href="assets/favicon/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
 <title>Selamat Ulang Tahun, Wiffy</title>
 <meta name="description" content="Sebuah surat ulang tahun untuk wiffy, dari hubby.">
+
+<!--
+  SHARE PREVIEW (Open Graph / Twitter Card) — controls how this
+  link looks when pasted into WhatsApp, Instagram, iMessage, etc.
+  If you host this site online, update "content" below to your
+  real URL so the image loads correctly for people you share it with.
+-->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Selamat Ulang Tahun, Wiffy 🌷">
+<meta property="og:description" content="Sebuah surat ulang tahun untuk wiffy, dari hubby.">
+<meta property="og:image" content="assets/images/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Selamat Ulang Tahun, Wiffy 🌷">
+<meta name="twitter:description" content="Sebuah surat ulang tahun untuk wiffy, dari hubby.">
+<meta name="twitter:image" content="assets/images/og-image.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+<div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
+
+
+<div class="preloader" id="preloader" aria-hidden="true">
+  <div class="preloader-inner">
+    <span class="preloader-ring"></span>
+    <p class="preloader-text">Khusnul Khotimah</p>
+  </div>
+</div>
+
 
 <div class="petals" id="petals" aria-hidden="true"></div>
 <div class="paper-texture" aria-hidden="true"></div>
@@ -319,7 +355,7 @@
     <p class="gallery-caption reveal">Ini foto-foto kita kemaren yang paling bagus-bagus dan lucu-lucu semua. Nanti kita buat lebih banyak ya, wiffy. Biar tahun depan fotonya makin banyak, ceritanya makin panjang, dan kenangannya bisa kita simpan sampai cucu-cucu kita nanti.</p>
 
     <div class="video-frame reveal" id="video-frame">
-      <video id="moment-video" controls preload="none" poster="">
+      <video id="moment-video" controls preload="metadata">
         <source src="assets/video/moment.mp4" type="video/mp4">
       </video>
       <span class="video-fallback"><span class="pf-icon">✦</span>Video kenangan akan segera hadir di sini</span>
@@ -440,6 +476,19 @@
 
 </main>
 
+<div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-label="Foto diperbesar">
+  <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Tutup">
+    <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <button class="lightbox-nav lightbox-prev" id="lightbox-prev" type="button" aria-label="Foto sebelumnya">
+    <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg>
+  </button>
+  <img class="lightbox-img" id="lightbox-img" src="" alt="">
+  <button class="lightbox-nav lightbox-next" id="lightbox-next" type="button" aria-label="Foto berikutnya">
+    <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/></svg>
+  </button>
+</div>
+
 
 <audio id="bg-audio" preload="none" loop>
   <source src="assets/audio/keep-you-safe.mp3" type="audio/mpeg">
@@ -447,6 +496,20 @@
 <audio id="voice-audio" preload="none">
   <source src="assets/audio/menghitung-hari-hubby.mp3" type="audio/mpeg">
 </audio>
+
+<!--
+  THEME DEMO SWITCHER — for showing off the 4 color variants to a buyer.
+  Invisible on a normal visit. Only appears when the URL has
+  "?theme-demo" at the end, e.g. index.html?theme-demo
+  Safe to delete this whole block (the "theme-demo" div below) before delivering a final site.
+-->
+<div class="theme-demo hidden" id="theme-demo" aria-hidden="true">
+  <span class="theme-demo-label">Preview tema</span>
+  <button class="theme-swatch" data-theme="" aria-label="Blossom (default)" style="background:#6E2436"></button>
+  <button class="theme-swatch" data-theme="rose-gold" aria-label="Rose Gold Luxury" style="background:#7A4A3E"></button>
+  <button class="theme-swatch" data-theme="navy" aria-label="Navy Elegant" style="background:#1F2D4D"></button>
+  <button class="theme-swatch" data-theme="sage" aria-label="Sage Minimalist" style="background:#4A5D45"></button>
+</div>
 
 <script src="script.js"></script>
 </body>
