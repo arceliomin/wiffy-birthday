@@ -128,9 +128,41 @@
   var gateMessage = document.getElementById("gate-message");
   var main = document.getElementById("main");
 
+  function spawnConfettiBurst(originEl) {
+    if (prefersReducedMotion || !originEl) return;
+    var rect = originEl.getBoundingClientRect();
+    var cx = rect.left + rect.width / 2;
+    var cy = rect.top + rect.height / 2;
+    var chars = ["♥", "❀", "✦"];
+
+    for (var i = 0; i < 12; i++) {
+      var span = document.createElement("span");
+      span.className = "confetti-heart";
+      span.textContent = chars[Math.floor(Math.random() * chars.length)];
+      span.style.left = cx + "px";
+      span.style.top = cy + "px";
+      span.style.color = Math.random() > 0.5 ? "#6E2436" : "#B99457";
+
+      var angle = Math.random() * Math.PI * 2;
+      var distance = 60 + Math.random() * 90;
+      span.style.setProperty("--cx", Math.cos(angle) * distance + "px");
+      span.style.setProperty("--cy", Math.sin(angle) * distance - 20 + "px");
+      span.style.setProperty("--cr", Math.random() * 160 - 80 + "deg");
+      span.style.animationDelay = Math.random() * 0.15 + "s";
+
+      document.body.appendChild(span);
+      (function (el) {
+        window.setTimeout(function () {
+          el.remove();
+        }, 1300);
+      })(span);
+    }
+  }
+
   function unlockSite() {
     gateMessage.textContent = "Yeay, wiffy berhasil masuk. Sekarang buka pelan-pelan ya.";
     gateMessage.className = "gate-message is-success";
+    spawnConfettiBurst(gateForm.querySelector(".gate-button"));
 
     try {
       window.sessionStorage.setItem("wiffy-unlocked", "1");
@@ -478,5 +510,56 @@
 
     window.addEventListener("scroll", onScrollParallax, { passive: true });
     updateParallax();
+  }
+
+  /* ---------------------------------------------------------
+     10. "HARI BERSAMA" — live counter since 17 March 2026
+     --------------------------------------------------------- */
+  var daysBadgeNum = document.getElementById("days-badge-num");
+  if (daysBadgeNum) {
+    var REUNITED_DATE = new Date("2026-03-17T00:00:00+07:00").getTime();
+
+    function updateDaysBadge() {
+      var diff = Date.now() - REUNITED_DATE;
+      var days = Math.max(0, Math.floor(diff / 86400000));
+      daysBadgeNum.textContent = days.toLocaleString("id-ID");
+    }
+
+    updateDaysBadge();
+    window.setInterval(updateDaysBadge, 60 * 60 * 1000);
+  }
+
+  /* ---------------------------------------------------------
+     11. SEALED ENVELOPE — tap to reveal the final letter
+     --------------------------------------------------------- */
+  var envelopeOpen = document.getElementById("envelope-open");
+  var envelopeScene = document.getElementById("envelope-scene");
+  var letterContent = document.getElementById("letter-content");
+
+  if (envelopeOpen && envelopeScene && letterContent) {
+    envelopeOpen.addEventListener("click", function () {
+      if (envelopeOpen.getAttribute("aria-expanded") === "true") return;
+      envelopeOpen.setAttribute("aria-expanded", "true");
+      envelopeOpen.classList.add("is-open");
+
+      var revealLetter = function () {
+        envelopeScene.classList.add("is-gone");
+        letterContent.classList.remove("hidden");
+        letterContent
+          .querySelectorAll(".reveal")
+          .forEach(function (el) {
+            el.classList.add("in-view");
+          });
+        window.requestAnimationFrame(function () {
+          letterContent.classList.add("is-visible");
+        });
+      };
+
+      if (prefersReducedMotion) {
+        revealLetter();
+      } else {
+        window.setTimeout(revealLetter, 750);
+      }
+    });
   }
 })();
