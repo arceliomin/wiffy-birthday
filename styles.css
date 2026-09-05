@@ -29,6 +29,70 @@
   --shadow-lift: 0 16px 40px -14px rgba(110, 36, 54, 0.22);
 }
 
+/* =========================================================
+   THEME VARIANTS — set <html data-theme="..."> to switch.
+   Default (no attribute) = "blossom", the palette above.
+   Everything below only overrides color tokens; layout,
+   spacing and typography stay identical across themes.
+   ========================================================= */
+
+/* --- Rose Gold Luxury --- */
+[data-theme="rose-gold"]{
+  --cream: #FFF8F4;
+  --cream-deep: #FBEAE0;
+  --blush: #F1D6C9;
+  --blush-soft: #F9E9DF;
+  --berry: #7A4A3E;
+  --berry-deep: #5A332A;
+  --berry-soft: #9C6455;
+  --gold: #C9A06B;
+  --gold-soft: #E4C79B;
+  --sage: #B98A6E;
+  --ink: #3D2E28;
+  --ink-soft: #7C6459;
+  --line: rgba(122, 74, 62, 0.18);
+  --shadow-soft: 0 10px 30px -12px rgba(122, 74, 62, 0.18);
+  --shadow-lift: 0 16px 40px -14px rgba(122, 74, 62, 0.24);
+}
+
+/* --- Navy Elegant --- */
+[data-theme="navy"]{
+  --cream: #F7F6F2;
+  --cream-deep: #EDEBE3;
+  --blush: #DCE1EA;
+  --blush-soft: #EEF1F5;
+  --berry: #1F2D4D;
+  --berry-deep: #14203A;
+  --berry-soft: #48587C;
+  --gold: #B79A5E;
+  --gold-soft: #D9C596;
+  --sage: #6E8B7C;
+  --ink: #24262B;
+  --ink-soft: #676B72;
+  --line: rgba(31, 45, 77, 0.16);
+  --shadow-soft: 0 10px 30px -12px rgba(31, 45, 77, 0.16);
+  --shadow-lift: 0 16px 40px -14px rgba(31, 45, 77, 0.22);
+}
+
+/* --- Sage Minimalist --- */
+[data-theme="sage"]{
+  --cream: #FAFAF6;
+  --cream-deep: #F1F0E8;
+  --blush: #E4E8DA;
+  --blush-soft: #F0F1E9;
+  --berry: #4A5D45;
+  --berry-deep: #34412F;
+  --berry-soft: #6C7F64;
+  --gold: #C08A5C;
+  --gold-soft: #DDB593;
+  --sage: #8FA37D;
+  --ink: #2E332A;
+  --ink-soft: #6B7264;
+  --line: rgba(74, 93, 69, 0.16);
+  --shadow-soft: 0 10px 30px -12px rgba(74, 93, 69, 0.16);
+  --shadow-lift: 0 16px 40px -14px rgba(74, 93, 69, 0.22);
+}
+
 *, *::before, *::after{ box-sizing: border-box; }
 
 ::selection{
@@ -76,6 +140,82 @@ button{
 }
 
 .hidden{ display: none !important; }
+
+/* ---------- custom cursor (desktop only) ---------- */
+.cursor-dot{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--gold);
+  pointer-events: none;
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s ease, width 0.2s ease, height 0.2s ease, margin 0.2s ease, background 0.2s ease;
+  will-change: transform;
+}
+.cursor-dot.is-active{ opacity: 0.55; }
+.cursor-dot.is-hovering{
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  background: transparent;
+  border: 1.5px solid var(--berry);
+  opacity: 0.6;
+}
+@media (hover: none), (pointer: coarse){
+  .cursor-dot{ display: none; }
+}
+@media (prefers-reduced-motion: reduce){
+  .cursor-dot{ display: none; }
+}
+
+/* ---------- preloader ---------- */
+.preloader{
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream);
+  transition: opacity 0.6s ease;
+}
+.preloader-inner{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.preloader-ring{
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  border-top-color: var(--gold);
+  animation: preloader-spin 0.9s linear infinite;
+}
+.preloader-text{
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--berry-soft);
+  letter-spacing: 0.03em;
+}
+@keyframes preloader-spin{
+  to{ transform: rotate(360deg); }
+}
+.preloader.is-hidden{
+  opacity: 0;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce){
+  .preloader-ring{ animation: none; }
+  .preloader{ transition: none; }
+}
 
 /* ---------- reusable botanical line-art (rose / tulip) ---------- */
 .botanical-defs{ position: absolute; width: 0; height: 0; overflow: hidden; }
@@ -669,6 +809,12 @@ button{
   max-width: 620px;
   margin: 0 auto;
 }
+.scroll-lit{
+  display: inline;
+  opacity: 0.35;
+  transition: opacity 0.5s ease;
+}
+.scroll-lit.is-lit{ opacity: 1; }
 .days-badge{
   display: inline-flex;
   flex-direction: column;
@@ -1317,6 +1463,100 @@ button{
   letter-spacing: 0.08em;
   color: var(--ink-soft);
   opacity: 0.85;
+}
+
+/* ---------- theme demo switcher (sales/preview only) ---------- */
+.theme-demo{
+  position: fixed;
+  left: max(1.1rem, env(safe-area-inset-left));
+  bottom: max(1.1rem, env(safe-area-inset-bottom));
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.8rem;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: var(--shadow-soft);
+}
+.theme-demo-label{
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  margin-right: 0.15rem;
+  white-space: nowrap;
+}
+.theme-swatch{
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--cream);
+  box-shadow: 0 0 0 1px var(--line);
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.theme-swatch:active{ transform: scale(0.9); }
+.theme-swatch.is-active{ box-shadow: 0 0 0 2px var(--gold); }
+
+/* ---------- photo lightbox ---------- */
+.lightbox{
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 12, 13, 0.9);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.lightbox.is-open{ display: flex; }
+.lightbox.is-visible{ opacity: 1; }
+.lightbox-img{
+  max-width: min(92vw, 640px);
+  max-height: 82vh;
+  width: auto;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  transform: scale(0.96);
+  transition: transform 0.3s ease;
+}
+.lightbox.is-visible .lightbox-img{ transform: scale(1); }
+.lightbox-close,
+.lightbox-nav{
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  color: var(--cream);
+  transition: background 0.2s ease;
+}
+.lightbox-close svg,
+.lightbox-nav svg{ width: 20px; height: 20px; }
+@media (hover: hover) and (pointer: fine){
+  .lightbox-close:hover,
+  .lightbox-nav:hover{ background: rgba(255,255,255,0.22); }
+}
+.lightbox-close:active,
+.lightbox-nav:active{ background: rgba(255,255,255,0.22); }
+.lightbox-close{ top: max(1.1rem, env(safe-area-inset-top)); right: max(1.1rem, env(safe-area-inset-right)); }
+.lightbox-prev{ left: max(0.8rem, env(safe-area-inset-left)); top: 50%; transform: translateY(-50%); }
+.lightbox-next{ right: max(0.8rem, env(safe-area-inset-right)); top: 50%; transform: translateY(-50%); }
+@media (max-width: 560px){
+  .lightbox-close{ width: 38px; height: 38px; }
+  .lightbox-nav{ width: 38px; height: 38px; }
+}
+@media (prefers-reduced-motion: reduce){
+  .lightbox{ transition: none; }
+  .lightbox-img{ transition: none; }
 }
 
 /* ---------- responsive safety ---------- */
