@@ -1344,6 +1344,12 @@ button{
   border: 2px solid var(--cream);
   box-shadow: 0 0 0 1px var(--berry);
   cursor: pointer;
+  margin-top: -5px;
+}
+.vp-range::-webkit-slider-runnable-track{
+  height: 3px;
+  background: var(--line);
+  border-radius: 3px;
 }
 .vp-range::-moz-range-thumb{
   width: 11px;
@@ -1361,7 +1367,7 @@ button{
 }
 @media (pointer: coarse){
   .vp-range{ height: 5px; padding: 12px 0; background-clip: content-box; }
-  .vp-range::-webkit-slider-thumb{ width: 18px; height: 18px; }
+  .vp-range::-webkit-slider-thumb{ width: 18px; height: 18px; margin-top: -6.5px; }
   .vp-range::-moz-range-thumb{ width: 16px; height: 16px; }
 }
 .vp-controls{
