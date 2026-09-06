@@ -588,16 +588,23 @@
       });
     });
 
-    // Auto-thumbnail: grab a frame partway through the clip and use
-    // it as the poster, so the video doesn't start on a black frame.
-    // Wrapped in try/catch — some browsers block canvas capture on
-    // local file:// videos for security reasons, which is fine, the
-    // video just falls back to its default first-frame preview.
+    // Auto-thumbnail: seek to a frame partway through the clip so the
+    // <video> element itself visibly shows that frame while paused —
+    // this works even opened as a local file (no canvas involved, so
+    // no browser security restrictions block it). We also try a
+    // canvas capture as a bonus real "poster" for when the site is
+    // hosted online, but the seek above is what actually fixes the
+    // black-frame-until-play problem in every case.
+    var thumbTime = 0;
+    var videoHasRealPlay = false;
+
     momentVideo.addEventListener("loadedmetadata", function () {
       try {
-        momentVideo.currentTime = Math.min(0.5, (momentVideo.duration || 1) / 2);
+        thumbTime = Math.min(0.5, (momentVideo.duration || 1) / 2);
+        momentVideo.currentTime = thumbTime;
       } catch (e) {}
     });
+
     momentVideo.addEventListener(
       "seeked",
       function grabThumb() {
@@ -608,7 +615,9 @@
           canvas.getContext("2d").drawImage(momentVideo, 0, 0, canvas.width, canvas.height);
           momentVideo.poster = canvas.toDataURL("image/jpeg", 0.82);
         } catch (e) {
-          /* canvas tainted or unsupported — keep default preview */
+          /* canvas tainted (common for local file:// videos) — the
+             currentTime seek above still shows a frame, so this is
+             just a missed bonus, not a broken thumbnail. */
         }
         momentVideo.removeEventListener("seeked", grabThumb);
       },
@@ -616,9 +625,17 @@
     );
 
     // Duck the background music while the video plays, and bring
-    // it back once the video finishes.
+    // it back once the video finishes. Also: if this is the very
+    // first play and we're still sitting on the injected thumbnail
+    // frame, jump back to 0 first so playback starts from the top
+    // instead of skipping ahead to the thumbnail point.
     var wasBgPlayingBeforeVideo = false;
     momentVideo.addEventListener("play", function () {
+      if (!videoHasRealPlay && Math.abs(momentVideo.currentTime - thumbTime) < 0.2) {
+        momentVideo.currentTime = 0;
+      }
+      videoHasRealPlay = true;
+
       wasBgPlayingBeforeVideo = !bgAudio.paused;
       if (wasBgPlayingBeforeVideo) {
         bgAudio.pause();
